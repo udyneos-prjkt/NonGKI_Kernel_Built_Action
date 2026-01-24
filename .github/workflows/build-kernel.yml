@@ -19,13 +19,13 @@ on:
         required: true
         default: true
         type: boolean
-      build_rksu:
-        description: 'Build RKSU A13+'
+      build_xxksu:
+        description: 'Build xxksu A13+'
         required: true
         default: true
         type: boolean
-      build_rksu_old:
-        description: 'Build RKSU A11+'
+      build_xxksu_old:
+        description: 'Build xxksu A11+'
         required: true
         default: true
         type: boolean
@@ -43,8 +43,8 @@ jobs:
           targets=()
           if [[ "${{ github.event.inputs.build_ksun }}" == "true" ]]; then targets+=("ksun"); fi
           if [[ "${{ github.event.inputs.build_ksun_old }}" == "true" ]]; then targets+=("ksun-old"); fi
-          if [[ "${{ github.event.inputs.build_rksu }}" == "true" ]]; then targets+=("rksu"); fi
-          if [[ "${{ github.event.inputs.build_rksu_old }}" == "true" ]]; then targets+=("rksu-old"); fi
+          if [[ "${{ github.event.inputs.build_xxksu }}" == "true" ]]; then targets+=("xxksu"); fi
+          if [[ "${{ github.event.inputs.build_xxksu_old }}" == "true" ]]; then targets+=("xxksu-old"); fi
           json=$(printf '%s\n' "${targets[@]}" | jq -R . | jq -s '{target: .}')
           echo "matrix<<EOF" >> $GITHUB_OUTPUT
           echo "$json" >> $GITHUB_OUTPUT
@@ -264,18 +264,8 @@ jobs:
                 echo "CONFIG_KPROBE_EVENTS=y" >> arch/${{ env.KERNEL_ARCH }}/configs/${DEVICE}_defconfig
             fi
         for config in CONFIG_KSU=y \
-                      CONFIG_KSU_SUSFS=y \
-                      CONFIG_KSU_SUSFS_SUS_PATH=y \
-                      CONFIG_KSU_SUSFS_SUS_MOUNT=y \
-                      CONFIG_KSU_SUSFS_SUS_KSTAT=y \
-                      CONFIG_KSU_SUSFS_TRY_UMOUNT=n \
-                      CONFIG_KSU_SUSFS_SPOOF_UNAME=y \
-                      CONFIG_KSU_SUSFS_ENABLE_LOG=y \
-                      CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y \
-                      CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y \
-                      CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y \
-                      CONFIG_KSU_SUSFS_OPEN_REDIRECT=y \
-                      CONFIG_KSU_SUSFS_SUS_MAP=y
+                      CONFIG_KSU_EXTRAS=y \
+                      CONFIG_KSU_TAMPER_SYSCALL_TABLE=y
         do
         echo "$config" >> arch/${{ env.KERNEL_ARCH }}/configs/${DEVICE}_defconfig
         done
@@ -392,12 +382,12 @@ jobs:
            fi
        fi
 
-    - name: Patch RKSU Ultra KPM
+    - name: Patch xxksu Ultra KPM
       if: env.CHECK_FILE_IS_OK == 'true' && env.KPM_SUPPORT == 'true'
       run: |
         OUT_BOOT=$GITHUB_WORKSPACE/kernel_workspace/android-kernel/out/arch/${{ env.KERNEL_ARCH }}/boot
-        mkdir $GITHUB_WORKSPACE/kernel_workspace/RKSU-Patch
-        cd $GITHUB_WORKSPACE/kernel_workspace/RKSU-Patch
+        mkdir $GITHUB_WORKSPACE/kernel_workspace/xxksu-Patch
+        cd $GITHUB_WORKSPACE/kernel_workspace/xxksu-Patch
         wget ${{ env.KPM_URL }}
         cp $OUT_BOOT/Image ./
         cp $OUT_BOOT/dts/mediatek/mt6768.dtb ./
