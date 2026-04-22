@@ -17,17 +17,17 @@ on:
       build_ksun_old:
         description: 'Build KernelSU-Next A11+'
         required: true
-        default: true
+        default: false
         type: boolean
       build_rksu:
         description: 'Build RKSU A13+'
         required: true
-        default: true
+        default: false
         type: boolean
       build_rksu_old:
         description: 'Build RKSU A11+'
         required: true
-        default: true
+        default: false
         type: boolean
 
 jobs:
@@ -99,7 +99,7 @@ jobs:
 
     - name: Setup kernel build environment
       run: |
-        echo "BUILD_TIME=$(TZ=Asia/Dhaka date "+%Y%m%d%H%M")" >> $GITHUB_ENV
+        echo "BUILD_TIME=$(TZ=Asia/Jakarta date "+%Y%m%d%H%M")" >> $GITHUB_ENV
         sudo apt-get update
         sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git git-lfs gnupg gperf imagemagick lib32ncurses-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses6 libncurses-dev libsdl1.2-dev libssl-dev libwxgtk3.2-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
         mkdir -p $GITHUB_WORKSPACE/kernel_workspace
@@ -253,8 +253,6 @@ jobs:
                 if grep -q "CONFIG_KSU" arch/${{ env.KERNEL_ARCH }}/configs/${DEVICE}_defconfig; then
                     sed -i 's/# CONFIG_KSU is not set/CONFIG_KSU=y/g' arch/${{ env.KERNEL_ARCH }}/configs/${DEVICE}_defconfig
                     sed -i 's/CONFIG_KSU=n/CONFIG_KSU=y/g' arch/${{ env.KERNEL_ARCH }}/configs/${DEVICE}_defconfig
-                else
-                    echo "CONFIG_KSU=y" >> arch/${{ env.KERNEL_ARCH }}/configs/${DEVICE}_defconfig
                 fi
             fi
             if [ ${{ env.ADD_KPROBES_CONFIG }} = true -a ${{ env.KSU_HOOKS_PATCH }} != true ]; then
@@ -263,22 +261,7 @@ jobs:
                 echo "CONFIG_HAVE_KPROBES=y" >> arch/${{ env.KERNEL_ARCH }}/configs/${DEVICE}_defconfig
                 echo "CONFIG_KPROBE_EVENTS=y" >> arch/${{ env.KERNEL_ARCH }}/configs/${DEVICE}_defconfig
             fi
-        for config in CONFIG_KSU=y \
-                      CONFIG_KSU_SUSFS=y \
-                      CONFIG_KSU_SUSFS_SUS_PATH=y \
-                      CONFIG_KSU_SUSFS_SUS_MOUNT=y \
-                      CONFIG_KSU_SUSFS_SUS_KSTAT=y \
-                      CONFIG_KSU_SUSFS_TRY_UMOUNT=n \
-                      CONFIG_KSU_SUSFS_SPOOF_UNAME=y \
-                      CONFIG_KSU_SUSFS_ENABLE_LOG=y \
-                      CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y \
-                      CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y \
-                      CONFIG_KSU_SUSFS_SUS_OVERLAYFS=y \
-                      CONFIG_KSU_SUSFS_OPEN_REDIRECT=y \
-                      CONFIG_KSU_SUSFS_SUS_MAP=y
-        do
-        echo "$config" >> arch/${{ env.KERNEL_ARCH }}/configs/${DEVICE}_defconfig
-        done
+
         fi
         if [ ${{ env.ADD_OVERLAYFS_CONFIG }} = true ]; then
             echo "CONFIG_OVERLAY_FS=y" >> arch/${{ env.KERNEL_ARCH }}/configs/${DEVICE}_defconfig
@@ -353,7 +336,7 @@ jobs:
             echo "Toolchain not selected"
             exit 1
         fi
-        export KBUILD_BUILD_HOST=Github-Action
+        export KBUILD_BUILD_HOST=Github
         export KBUILD_BUILD_USER=mnrdnn
         if [ -n ${{ env.KSU_EXPECTED_SIZE }} ] && [ -n ${{ env.KSU_EXPECTED_HASH }} ]; then
           export KSU_EXPECTED_SIZE=${{ env.KSU_EXPECTED_SIZE }}
